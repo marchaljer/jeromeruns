@@ -54,4 +54,31 @@ function loadState() {
     }
 }
 
+document.getElementById('toggle-view-switch').addEventListener('change', (event) => {
+    const isChecked = event.target.checked;
+    const rows = document.querySelectorAll('tbody tr');
+    const label = document.getElementById('toggle-view-label');
+    const today = new Date();
+    const currentWeekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+    const currentWeekEnd = new Date(today.setDate(today.getDate() + 6));
+
+    if (isChecked) {
+        // Vue de la semaine en cours
+        rows.forEach(row => {
+            let rowDate = row.cells[0].innerText.split('/').reverse().join('-');
+            let sessionDate = new Date(rowDate);
+            if (sessionDate >= currentWeekStart && sessionDate <= currentWeekEnd) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        label.innerText = 'Vue Semaine';
+    } else {
+        // Vue globale
+        rows.forEach(row => row.style.display = '');
+        label.innerText = 'Vue Globale';
+    }
+});
+
 window.onload = loadState;
