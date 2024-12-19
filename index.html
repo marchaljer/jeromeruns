@@ -1,915 +1,732 @@
 
 <!DOCTYPE html>
-
 <html lang="fr">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Dashboard d'Entraînement Marathon - 14 Semaines</title>
-<style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-            color: #333;
-        }
-        header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            font-size: 1.8em;
-            font-weight: bold;
-        }
-        .container {
-            padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .sticky-section {
-            background: #fff;
-            padding: 20px;
-            border: 1px solid #ddd;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            position: sticky;
-            top: 20px;
-            z-index: 100;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        .progress-bar {
-            width: 100%;
-            background: #ddd;
-            border-radius: 20px;
-            overflow: hidden;
-            height: 30px;
-            margin-top: 10px;
-        }
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: #4CAF50;
-            text-align: center;
-            color: white;
-            line-height: 30px;
-            transition: width 0.3s ease-in-out;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: #fff;
-            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: center;
-        }
-        th {
-            background-color: #4CAF50;
-            color: white;
-            font-size: 1.1em;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-        .done {
-            background-color: #c8e6c9 !important;
-        }
-        input[type="checkbox"] {
-            transform: scale(1.5);
-            cursor: pointer;
-        }
-        footer {
-            text-align: center;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            margin-top: 20px;
-        }
-    
-        @media (max-width: 768px) {
-            header {
-                font-size: 1.5em;
-                padding: 15px;
-            }
-            .container {
-                padding: 10px;
-            }
-            .sticky-section {
-                padding: 15px;
-                top: 10px;
-            }
-            .progress-bar {
-                height: 25px;
-            }
-            .progress-fill {
-                line-height: 25px;
-            }
-            table {
-                font-size: 0.9em;
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-            th, td {
-                padding: 10px;
-            }
-            input[type="checkbox"] {
-                transform: scale(1.2);
-            }
-            footer {
-                font-size: 0.9em;
-            }
-        }
-</style>
-<script>
-        function toggleDone(checkbox) {
-            let row = checkbox.parentElement.parentElement;
-            let distanceCell = row.cells[3];
-            let distance = parseFloat(distanceCell.innerText) || 0;
-            let completedDistance = parseFloat(document.getElementById('completed-distance').innerText) || 0;
-            let totalDistance = parseFloat(document.getElementById('total-distance').innerText);
-
-            if (checkbox.checked) {
-                row.classList.add('done');
-                completedDistance += distance;
-            } else {
-                row.classList.remove('done');
-                completedDistance -= distance;
-            }
-
-            document.getElementById('completed-distance').innerText = completedDistance.toFixed(2);
-            document.getElementById('remaining-distance').innerText = (totalDistance - completedDistance).toFixed(2);
-            updateProgress(completedDistance, totalDistance);
-            saveState();
-        }
-
-        function updateProgress(completed, total) {
-            let progress = (completed / total) * 100;
-            document.getElementById('progress-fill').style.width = progress + '%';
-            document.getElementById('progress-text').innerText = Math.round(progress) + '%';
-        }
-
-        function saveState() {
-            let checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            let state = Array.from(checkboxes).map(cb => cb.checked);
-            localStorage.setItem('trainingState', JSON.stringify(state));
-            localStorage.setItem('completedDistance', document.getElementById('completed-distance').innerText);
-        }
-
-        function loadState() {
-            let state = JSON.parse(localStorage.getItem('trainingState'));
-            let completedDistance = localStorage.getItem('completedDistance');
-            let checkboxes = document.querySelectorAll('input[type="checkbox"]');
-
-            if (state) {
-                state.forEach((checked, index) => {
-                    checkboxes[index].checked = checked;
-                    if (checked) {
-                        checkboxes[index].parentElement.parentElement.classList.add('done');
-                    }
-                });
-            }
-
-            if (completedDistance) {
-                document.getElementById('completed-distance').innerText = completedDistance;
-                let totalDistance = parseFloat(document.getElementById('total-distance').innerText);
-                document.getElementById('remaining-distance').innerText = (totalDistance - parseFloat(completedDistance)).toFixed(2);
-                updateProgress(parseFloat(completedDistance), totalDistance);
-            }
-        }
-
-        window.onload = loadState;
-    </script>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Dashboard d'Entraînement Marathon - 14 Semaines</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header>🏃‍♂️ Dashboard d'Entraînement Marathon - 14 Semaines 🗓️</header>
-<div class="container">
-<div class="sticky-section">
-<h2>Progression Globale</h2>
-<div class="progress-bar">
-<div class="progress-fill" id="progress-fill">
-<span id="progress-text">0%</span>
-</div>
-</div>
-<h2>Suivi des Kilomètres</h2>
-<p>Total à parcourir : <span id="total-distance">0</span> km</p>
-<p>Parcourus : <span id="completed-distance">0</span> km</p>
-<p>Restants : <span id="remaining-distance">0</span> km</p>
-</div>
-<table>
-<thead>
-<tr>
-<th>Date</th>
-<th>Jour</th>
-<th>Session</th>
-<th>Distance (km)</th>
-<th>Effectué</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>30/12/2024</td>
-<td>Lundi</td>
-<td>Repos / Renforcement</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>31/12/2024</td>
-<td>Mardi</td>
-<td>Fractionné : 6 x 400m allure 10km</td>
-<td>2,4</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>01/01/2025</td>
-<td>Mercredi</td>
-<td>Endurance : 10km</td>
-<td>10</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>02/01/2025</td>
-<td>Jeudi</td>
-<td>Repos ou Cross-training</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>03/01/2025</td>
-<td>Vendredi</td>
-<td>Tempo run 8km</td>
-<td>8</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>04/01/2025</td>
-<td>Samedi</td>
-<td>Repos</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>05/01/2025</td>
-<td>Dimanche</td>
-<td>Sortie longue 15km</td>
-<td>15</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>06/01/2025</td>
-<td>Lundi</td>
-<td>Repos / Renforcement</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>07/01/2025</td>
-<td>Mardi</td>
-<td>Fractionné : 8 x 400m allure 10km</td>
-<td>3,2</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>08/01/2025</td>
-<td>Mercredi</td>
-<td>Endurance : 12km</td>
-<td>12</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>09/01/2025</td>
-<td>Jeudi</td>
-<td>Renforcement musculaire</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>10/01/2025</td>
-<td>Vendredi</td>
-<td>Tempo run 10km</td>
-<td>10</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>11/01/2025</td>
-<td>Samedi</td>
-<td>Repos</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>12/01/2025</td>
-<td>Dimanche</td>
-<td>Sortie longue 18km</td>
-<td>18</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>13/01/2025</td>
-<td>Lundi</td>
-<td>Repos / Renforcement</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>14/01/2025</td>
-<td>Mardi</td>
-<td>Fractionné : 6 x 800m allure 10km</td>
-<td>4,8</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>15/01/2025</td>
-<td>Mercredi</td>
-<td>Endurance : 12km</td>
-<td>12</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>16/01/2025</td>
-<td>Jeudi</td>
-<td>Repos ou Yoga</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>17/01/2025</td>
-<td>Vendredi</td>
-<td>Tempo run 12km</td>
-<td>12</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>18/01/2025</td>
-<td>Samedi</td>
-<td>Repos</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>19/01/2025</td>
-<td>Dimanche</td>
-<td>Sortie longue 20km</td>
-<td>20</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>20/01/2025</td>
-<td>Lundi</td>
-<td>Repos / Renforcement</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>21/01/2025</td>
-<td>Mardi</td>
-<td>Fractionné : 8 x 800m allure 10km</td>
-<td>6,4</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>22/01/2025</td>
-<td>Mercredi</td>
-<td>Endurance : 14km</td>
-<td>14</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>23/01/2025</td>
-<td>Jeudi</td>
-<td>Renforcement musculaire</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>24/01/2025</td>
-<td>Vendredi</td>
-<td>Tempo run 14km</td>
-<td>14</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>25/01/2025</td>
-<td>Samedi</td>
-<td>Repos</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>26/01/2025</td>
-<td>Dimanche</td>
-<td>Sortie longue 22km</td>
-<td>22</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>27/01/2025</td>
-<td>Lundi</td>
-<td>Repos / Renforcement</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>28/01/2025</td>
-<td>Mardi</td>
-<td>Fractionné : 5 x 1km allure 10km</td>
-<td>5</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>29/01/2025</td>
-<td>Mercredi</td>
-<td>Endurance : 14km</td>
-<td>14</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>30/01/2025</td>
-<td>Jeudi</td>
-<td>Repos ou Vélo 45 min</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>31/01/2025</td>
-<td>Vendredi</td>
-<td>Tempo run 15km</td>
-<td>15</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>01/02/2025</td>
-<td>Samedi</td>
-<td>Repos</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>02/02/2025</td>
-<td>Dimanche</td>
-<td>Sortie longue 24km</td>
-<td>24</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>03/02/2025</td>
-<td>Lundi</td>
-<td>Repos / Renforcement</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>04/02/2025</td>
-<td>Mardi</td>
-<td>Fractionné : 6 x 1km allure 10km</td>
-<td>6</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>05/02/2025</td>
-<td>Mercredi</td>
-<td>Endurance : 16km</td>
-<td>16</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>06/02/2025</td>
-<td>Jeudi</td>
-<td>Renforcement musculaire</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>07/02/2025</td>
-<td>Vendredi</td>
-<td>Tempo run 15km</td>
-<td>15</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>08/02/2025</td>
-<td>Samedi</td>
-<td>Repos</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>09/02/2025</td>
-<td>Dimanche</td>
-<td>Sortie longue 26km</td>
-<td>26</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>10/02/2025</td>
-<td>Lundi</td>
-<td>Repos / Renforcement</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>11/02/2025</td>
-<td>Mardi</td>
-<td>Fractionné : 4 x 1,5km allure seuil</td>
-<td>6</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>12/02/2025</td>
-<td>Mercredi</td>
-<td>Endurance : 16km</td>
-<td>16</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>13/02/2025</td>
-<td>Jeudi</td>
-<td>Repos ou Natation 45 min</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>14/02/2025</td>
-<td>Vendredi</td>
-<td>Tempo run 16km</td>
-<td>16</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>15/02/2025</td>
-<td>Samedi</td>
-<td>Repos</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>16/02/2025</td>
-<td>Dimanche</td>
-<td>Sortie longue 28km</td>
-<td>28</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>17/02/2025</td>
-<td>Lundi</td>
-<td>Repos / Renforcement</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>18/02/2025</td>
-<td>Mardi</td>
-<td>Fractionné : 5 x 1,5km allure seuil</td>
-<td>7,5</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>19/02/2025</td>
-<td>Mercredi</td>
-<td>Endurance : 18km</td>
-<td>18</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>20/02/2025</td>
-<td>Jeudi</td>
-<td>Repos complet</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>21/02/2025</td>
-<td>Vendredi</td>
-<td>Tempo run 18km</td>
-<td>18</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>22/02/2025</td>
-<td>Samedi</td>
-<td>Repos</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>23/02/2025</td>
-<td>Dimanche</td>
-<td>Sortie longue 30km</td>
-<td>30</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>24/02/2025</td>
-<td>Lundi</td>
-<td>Repos / Renforcement</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>25/02/2025</td>
-<td>Mardi</td>
-<td>Fractionné : 4 x 2km allure marathon</td>
-<td>8</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>26/02/2025</td>
-<td>Mercredi</td>
-<td>Endurance : 18km</td>
-<td>18</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>27/02/2025</td>
-<td>Jeudi</td>
-<td>Repos ou Vélo 45 min</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>28/02/2025</td>
-<td>Vendredi</td>
-<td>Tempo run 18km</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>01/03/2025</td>
-<td>Samedi</td>
-<td>Repos</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>02/03/2025</td>
-<td>Dimanche</td>
-<td>Sortie longue 32km</td>
-<td>32</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>03/03/2025</td>
-<td>Lundi</td>
-<td>Repos / Renforcement</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>04/03/2025</td>
-<td>Mardi</td>
-<td>Fractionné : 5 x 2km allure marathon</td>
-<td>10</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>05/03/2025</td>
-<td>Mercredi</td>
-<td>Endurance : 20km</td>
-<td>20</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>06/03/2025</td>
-<td>Jeudi</td>
-<td>Renforcement musculaire</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>07/03/2025</td>
-<td>Vendredi</td>
-<td>Tempo run 16km</td>
-<td>16</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>08/03/2025</td>
-<td>Samedi</td>
-<td>Repos</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>09/03/2025</td>
-<td>Dimanche</td>
-<td>Sortie longue 34km</td>
-<td>34</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>10/03/2025</td>
-<td>Lundi</td>
-<td>Repos / Renforcement</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>11/03/2025</td>
-<td>Mardi</td>
-<td>Fractionné : 4 x 2,5km allure marathon</td>
-<td>10</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>12/03/2025</td>
-<td>Mercredi</td>
-<td>Endurance : 20km</td>
-<td>20</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>13/03/2025</td>
-<td>Jeudi</td>
-<td>Repos ou Yoga</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>14/03/2025</td>
-<td>Vendredi</td>
-<td>Tempo run 14km</td>
-<td>14</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>15/03/2025</td>
-<td>Samedi</td>
-<td>Repos</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>16/03/2025</td>
-<td>Dimanche</td>
-<td>Sortie longue 30km</td>
-<td>30</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>17/03/2025</td>
-<td>Lundi</td>
-<td>Repos / Renforcement</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>18/03/2025</td>
-<td>Mardi</td>
-<td>Fractionné : 3 x 3km allure marathon</td>
-<td>9</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>19/03/2025</td>
-<td>Mercredi</td>
-<td>Endurance : 18km</td>
-<td>18</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>20/03/2025</td>
-<td>Jeudi</td>
-<td>Renforcement musculaire</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>21/03/2025</td>
-<td>Vendredi</td>
-<td>Tempo run 12km</td>
-<td>12</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>22/03/2025</td>
-<td>Samedi</td>
-<td>Repos</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>23/03/2025</td>
-<td>Dimanche</td>
-<td>Sortie longue 28km</td>
-<td>28</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>24/03/2025</td>
-<td>Lundi</td>
-<td>Repos / Renforcement</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>25/03/2025</td>
-<td>Mardi</td>
-<td>Fractionné : 4 x 2km allure marathon</td>
-<td>8</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>26/03/2025</td>
-<td>Mercredi</td>
-<td>Endurance : 16km</td>
-<td>16</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>27/03/2025</td>
-<td>Jeudi</td>
-<td>Repos ou Étirements</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>28/03/2025</td>
-<td>Vendredi</td>
-<td>Tempo run 10km</td>
-<td>10</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>29/03/2025</td>
-<td>Samedi</td>
-<td>Repos</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>30/03/2025</td>
-<td>Dimanche</td>
-<td>Sortie longue 20km</td>
-<td>20</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>31/03/2025</td>
-<td>Lundi</td>
-<td>Repos / Étirements</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>01/04/2025</td>
-<td>Mardi</td>
-<td>Footing léger 5km</td>
-<td>5</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>02/04/2025</td>
-<td>Mercredi</td>
-<td>Repos</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>03/04/2025</td>
-<td>Jeudi</td>
-<td>Footing léger 5km</td>
-<td>5</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>04/04/2025</td>
-<td>Vendredi</td>
-<td>Repos / Étirements</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>05/04/2025</td>
-<td>Samedi</td>
-<td>Repos complet</td>
-<td>0</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-<tr>
-<td>06/04/2025</td>
-<td>Dimanche</td>
-<td>Marathon !</td>
-<td>42,195</td>
-<td><input onclick="toggleDone(this)" type="checkbox"/></td>
-</tr>
-</tbody>
-</table>
-</div>
-<footer>© 2024 Entraînement Marathon | Bonne course ! 🏁</footer>
-<script>
-        document.getElementById('total-distance').innerText = 955;
-        document.getElementById('remaining-distance').innerText = 955;
-    </script>
-</body>
+    <header>🏃‍♂️ Dashboard d'Entraînement Marathon - 14 Semaines 🗓️</header>
+    <div class="container">
+    <div class="sticky-section">
+    <h2>Progression Globale</h2>
+    <div class="progress-bar">
+    <div class="progress-fill" id="progress-fill">
+    <span id="progress-text">0%</span>
+    </div>
+    </div>
+    <h2>Suivi des Kilomètres</h2>
+    <p>Total à parcourir : <span id="total-distance">0</span> km</p>
+    <p>Parcourus : <span id="completed-distance">0</span> km</p>
+    <p>Restants : <span id="remaining-distance">0</span> km</p>
+    </div>
+    <table>
+    <thead>
+    <tr>
+    <th>Date</th>
+    <th>Jour</th>
+    <th>Session</th>
+    <th>Distance (km)</th>
+    <th>Effectué</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td>30/12/2024</td>
+    <td>Lundi</td>
+    <td>Repos / Renforcement</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>31/12/2024</td>
+    <td>Mardi</td>
+    <td>Fractionné : 6 x 400m allure 10km</td>
+    <td>2,4</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>01/01/2025</td>
+    <td>Mercredi</td>
+    <td>Endurance : 10km</td>
+    <td>10</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>02/01/2025</td>
+    <td>Jeudi</td>
+    <td>Repos ou Cross-training</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>03/01/2025</td>
+    <td>Vendredi</td>
+    <td>Tempo run 8km</td>
+    <td>8</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>04/01/2025</td>
+    <td>Samedi</td>
+    <td>Repos</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>05/01/2025</td>
+    <td>Dimanche</td>
+    <td>Sortie longue 15km</td>
+    <td>15</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>06/01/2025</td>
+    <td>Lundi</td>
+    <td>Repos / Renforcement</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>07/01/2025</td>
+    <td>Mardi</td>
+    <td>Fractionné : 8 x 400m allure 10km</td>
+    <td>3,2</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>08/01/2025</td>
+    <td>Mercredi</td>
+    <td>Endurance : 12km</td>
+    <td>12</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>09/01/2025</td>
+    <td>Jeudi</td>
+    <td>Renforcement musculaire</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>10/01/2025</td>
+    <td>Vendredi</td>
+    <td>Tempo run 10km</td>
+    <td>10</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>11/01/2025</td>
+    <td>Samedi</td>
+    <td>Repos</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>12/01/2025</td>
+    <td>Dimanche</td>
+    <td>Sortie longue 18km</td>
+    <td>18</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>13/01/2025</td>
+    <td>Lundi</td>
+    <td>Repos / Renforcement</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>14/01/2025</td>
+    <td>Mardi</td>
+    <td>Fractionné : 6 x 800m allure 10km</td>
+    <td>4,8</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>15/01/2025</td>
+    <td>Mercredi</td>
+    <td>Endurance : 12km</td>
+    <td>12</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>16/01/2025</td>
+    <td>Jeudi</td>
+    <td>Repos ou Yoga</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>17/01/2025</td>
+    <td>Vendredi</td>
+    <td>Tempo run 12km</td>
+    <td>12</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>18/01/2025</td>
+    <td>Samedi</td>
+    <td>Repos</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>19/01/2025</td>
+    <td>Dimanche</td>
+    <td>Sortie longue 20km</td>
+    <td>20</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>20/01/2025</td>
+    <td>Lundi</td>
+    <td>Repos / Renforcement</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>21/01/2025</td>
+    <td>Mardi</td>
+    <td>Fractionné : 8 x 800m allure 10km</td>
+    <td>6,4</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>22/01/2025</td>
+    <td>Mercredi</td>
+    <td>Endurance : 14km</td>
+    <td>14</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>23/01/2025</td>
+    <td>Jeudi</td>
+    <td>Renforcement musculaire</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>24/01/2025</td>
+    <td>Vendredi</td>
+    <td>Tempo run 14km</td>
+    <td>14</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>25/01/2025</td>
+    <td>Samedi</td>
+    <td>Repos</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>26/01/2025</td>
+    <td>Dimanche</td>
+    <td>Sortie longue 22km</td>
+    <td>22</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>27/01/2025</td>
+    <td>Lundi</td>
+    <td>Repos / Renforcement</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>28/01/2025</td>
+    <td>Mardi</td>
+    <td>Fractionné : 5 x 1km allure 10km</td>
+    <td>5</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>29/01/2025</td>
+    <td>Mercredi</td>
+    <td>Endurance : 14km</td>
+    <td>14</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>30/01/2025</td>
+    <td>Jeudi</td>
+    <td>Repos ou Vélo 45 min</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>31/01/2025</td>
+    <td>Vendredi</td>
+    <td>Tempo run 15km</td>
+    <td>15</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>01/02/2025</td>
+    <td>Samedi</td>
+    <td>Repos</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>02/02/2025</td>
+    <td>Dimanche</td>
+    <td>Sortie longue 24km</td>
+    <td>24</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>03/02/2025</td>
+    <td>Lundi</td>
+    <td>Repos / Renforcement</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>04/02/2025</td>
+    <td>Mardi</td>
+    <td>Fractionné : 6 x 1km allure 10km</td>
+    <td>6</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>05/02/2025</td>
+    <td>Mercredi</td>
+    <td>Endurance : 16km</td>
+    <td>16</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>06/02/2025</td>
+    <td>Jeudi</td>
+    <td>Renforcement musculaire</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>07/02/2025</td>
+    <td>Vendredi</td>
+    <td>Tempo run 15km</td>
+    <td>15</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>08/02/2025</td>
+    <td>Samedi</td>
+    <td>Repos</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>09/02/2025</td>
+    <td>Dimanche</td>
+    <td>Sortie longue 26km</td>
+    <td>26</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>10/02/2025</td>
+    <td>Lundi</td>
+    <td>Repos / Renforcement</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>11/02/2025</td>
+    <td>Mardi</td>
+    <td>Fractionné : 4 x 1,5km allure seuil</td>
+    <td>6</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>12/02/2025</td>
+    <td>Mercredi</td>
+    <td>Endurance : 16km</td>
+    <td>16</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>13/02/2025</td>
+    <td>Jeudi</td>
+    <td>Repos ou Natation 45 min</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>14/02/2025</td>
+    <td>Vendredi</td>
+    <td>Tempo run 16km</td>
+    <td>16</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>15/02/2025</td>
+    <td>Samedi</td>
+    <td>Repos</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>16/02/2025</td>
+    <td>Dimanche</td>
+    <td>Sortie longue 28km</td>
+    <td>28</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>17/02/2025</td>
+    <td>Lundi</td>
+    <td>Repos / Renforcement</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>18/02/2025</td>
+    <td>Mardi</td>
+    <td>Fractionné : 5 x 1,5km allure seuil</td>
+    <td>7,5</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>19/02/2025</td>
+    <td>Mercredi</td>
+    <td>Endurance : 18km</td>
+    <td>18</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>20/02/2025</td>
+    <td>Jeudi</td>
+    <td>Repos complet</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>21/02/2025</td>
+    <td>Vendredi</td>
+    <td>Tempo run 18km</td>
+    <td>18</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>22/02/2025</td>
+    <td>Samedi</td>
+    <td>Repos</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>23/02/2025</td>
+    <td>Dimanche</td>
+    <td>Sortie longue 30km</td>
+    <td>30</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>24/02/2025</td>
+    <td>Lundi</td>
+    <td>Repos / Renforcement</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>25/02/2025</td>
+    <td>Mardi</td>
+    <td>Fractionné : 4 x 2km allure marathon</td>
+    <td>8</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>26/02/2025</td>
+    <td>Mercredi</td>
+    <td>Endurance : 18km</td>
+    <td>18</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>27/02/2025</td>
+    <td>Jeudi</td>
+    <td>Repos ou Vélo 45 min</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>28/02/2025</td>
+    <td>Vendredi</td>
+    <td>Tempo run 18km</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>01/03/2025</td>
+    <td>Samedi</td>
+    <td>Repos</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>02/03/2025</td>
+    <td>Dimanche</td>
+    <td>Sortie longue 32km</td>
+    <td>32</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>03/03/2025</td>
+    <td>Lundi</td>
+    <td>Repos / Renforcement</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>04/03/2025</td>
+    <td>Mardi</td>
+    <td>Fractionné : 5 x 2km allure marathon</td>
+    <td>10</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>05/03/2025</td>
+    <td>Mercredi</td>
+    <td>Endurance : 20km</td>
+    <td>20</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>06/03/2025</td>
+    <td>Jeudi</td>
+    <td>Renforcement musculaire</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>07/03/2025</td>
+    <td>Vendredi</td>
+    <td>Tempo run 16km</td>
+    <td>16</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>08/03/2025</td>
+    <td>Samedi</td>
+    <td>Repos</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>09/03/2025</td>
+    <td>Dimanche</td>
+    <td>Sortie longue 34km</td>
+    <td>34</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>10/03/2025</td>
+    <td>Lundi</td>
+    <td>Repos / Renforcement</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>11/03/2025</td>
+    <td>Mardi</td>
+    <td>Fractionné : 4 x 2,5km allure marathon</td>
+    <td>10</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>12/03/2025</td>
+    <td>Mercredi</td>
+    <td>Endurance : 20km</td>
+    <td>20</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>13/03/2025</td>
+    <td>Jeudi</td>
+    <td>Repos ou Yoga</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>14/03/2025</td>
+    <td>Vendredi</td>
+    <td>Tempo run 14km</td>
+    <td>14</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>15/03/2025</td>
+    <td>Samedi</td>
+    <td>Repos</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>16/03/2025</td>
+    <td>Dimanche</td>
+    <td>Sortie longue 30km</td>
+    <td>30</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>17/03/2025</td>
+    <td>Lundi</td>
+    <td>Repos / Renforcement</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>18/03/2025</td>
+    <td>Mardi</td>
+    <td>Fractionné : 3 x 3km allure marathon</td>
+    <td>9</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>19/03/2025</td>
+    <td>Mercredi</td>
+    <td>Endurance : 18km</td>
+    <td>18</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>20/03/2025</td>
+    <td>Jeudi</td>
+    <td>Renforcement musculaire</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>21/03/2025</td>
+    <td>Vendredi</td>
+    <td>Tempo run 12km</td>
+    <td>12</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>22/03/2025</td>
+    <td>Samedi</td>
+    <td>Repos</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>23/03/2025</td>
+    <td>Dimanche</td>
+    <td>Sortie longue 28km</td>
+    <td>28</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>24/03/2025</td>
+    <td>Lundi</td>
+    <td>Repos / Renforcement</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>25/03/2025</td>
+    <td>Mardi</td>
+    <td>Fractionné : 4 x 2km allure marathon</td>
+    <td>8</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>26/03/2025</td>
+    <td>Mercredi</td>
+    <td>Endurance : 16km</td>
+    <td>16</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>27/03/2025</td>
+    <td>Jeudi</td>
+    <td>Repos ou Étirements</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>28/03/2025</td>
+    <td>Vendredi</td>
+    <td>Tempo run 10km</td>
+    <td>10</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>29/03/2025</td>
+    <td>Samedi</td>
+    <td>Repos</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>30/03/2025</td>
+    <td>Dimanche</td>
+    <td>Sortie longue 20km</td>
+    <td>20</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>31/03/2025</td>
+    <td>Lundi</td>
+    <td>Repos / Étirements</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>01/04/2025</td>
+    <td>Mardi</td>
+    <td>Footing léger 5km</td>
+    <td>5</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>02/04/2025</td>
+    <td>Mercredi</td>
+    <td>Repos</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>03/04/2025</td>
+    <td>Jeudi</td>
+    <td>Footing léger 5km</td>
+    <td>5</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>04/04/2025</td>
+    <td>Vendredi</td>
+    <td>Repos / Étirements</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>05/04/2025</td>
+    <td>Samedi</td>
+    <td>Repos complet</td>
+    <td>0</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    <tr>
+    <td>06/04/2025</td>
+    <td>Dimanche</td>
+    <td>Marathon !</td>
+    <td>42,195</td>
+    <td><input onclick="toggleDone(this)" type="checkbox"/></td>
+    </tr>
+    </tbody>
+    </table>
+    </div>
+    <footer>© 2024 Entraînement Marathon | Bonne course ! 🏁</footer>
+    <script>
+            document.getElementById('total-distance').innerText = 955;
+            document.getElementById('remaining-distance').innerText = 955;
+        </script>
+    <script src="script.js"></script>    
+    </body>
 </html>
